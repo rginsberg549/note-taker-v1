@@ -50,7 +50,10 @@ const renderActiveNote = () => {
 };
 
 // Get the note data from the inputs, save it to the db and update the view
-const handleNoteSave = function () {
+const handleNoteSave = function (event) {
+  event.stopPropagation();
+
+
   const newNote = {
     title: $noteTitle.val(),
     text: $noteText.val(),
@@ -109,8 +112,9 @@ const renderNoteList = (notes) => {
 
   // Returns jquery object for li with given text and delete button
   // unless withDeleteButton argument is provided as false
-  const create$li = (text, withDeleteButton = true) => {
+  const create$li = (id, text, withDeleteButton = true) => {
     const $li = $("<li class='list-group-item'>");
+    $li.attr("id", id);
     const $span = $("<span>").text(text);
     $li.append($span);
 
@@ -124,11 +128,11 @@ const renderNoteList = (notes) => {
   };
 
   if (notes.length === 0) {
-    noteListItems.push(create$li("No saved Notes", false));
+    noteListItems.push(create$li("NA","No saved Notes", false));
   }
 
   notes.forEach((note) => {
-    const $li = create$li(note.title).data(note);
+    const $li = create$li(note.id, note.title).data(note);
     noteListItems.push($li);
   });
 

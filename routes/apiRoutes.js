@@ -1,23 +1,33 @@
 const fs = require("fs");
-var noteData = require("../data/notes.json");
 const util = require("util");
-
+const { v4: uuidv4 } = require("uuid");
 
 const readFileAsync = util.promisify(fs.readFile);
 const writeFileAsync = util.promisify(fs.writeFile);
 
-const file_path = __dirname + "/../data/notes.json";
+const file_path = __dirname + "/../public/data/notes.json";
 
 module.exports = function (app) {
-  app.get("/api/notes", function (req, res) {
-    res.json(noteData);
+  app.get("/api/notes", async function (req, res) {
+    try {
+      let rawdata = await readFileAsync(file_path);
+      let notes = JSON.parse(rawdata);
+      res.json(notes);
+    } catch (e) {
+      res.json(false);
+    }
   });
 
   app.post("/api/notes", async function (req, res) {
     try {
       let rawdata = await readFileAsync(file_path);
       let notes = JSON.parse(rawdata);
-      notes.push(req.body);
+      let noteData = {
+        id: uuidv4(),
+        title: req.body.title,
+        text: req.body.text,
+      };
+      notes.push(noteData);
       writeFileAsync(file_path, JSON.stringify(notes));
       res.json(false);
     } catch (e) {
@@ -25,9 +35,17 @@ module.exports = function (app) {
     }
   });
 
-  app.get("/api/notes/:id", function (req, res) {
-    var chosen = req.params.character;
-    console.log(chosen);
+  app.delete("/api/notes/:id", async function (req, res) {
+    var chosen = req.params.id;
+    let rawdata = await readFileAsync(file_path);
+    let notes = JSON.parse(rawdata);
+
+    for (var i = 0; i < notes.length; i++) {
+      if (notes[i].id === chosen) {
+        notes.splice(i, 1);
+      }
+    }
+    writeFileAsync(file_path, JSON.stringify(notes));
     return res.json(false);
   });
 };
